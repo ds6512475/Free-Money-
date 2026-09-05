@@ -1,0 +1,189 @@
+const API = "";
+
+async function register() {
+
+  const response = await fetch(API + "/api/register", {
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      name: document.getElementById("name").value,
+      email: document.getElementById("email").value,
+      password: document.getElementById("password").value,
+      referral: document.getElementById("referral").value
+    })
+  });
+
+  const data = await response.json();
+
+  alert(data.message);
+}
+
+
+async function login() {
+
+  const response = await fetch(API + "/api/login", {
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      email: document.getElementById("loginEmail").value,
+      password: document.getElementById("loginPassword").value
+    })
+  });
+
+  const data = await response.json();
+
+  if (data.token) {
+
+    localStorage.setItem("token", data.token);
+
+    window.location = "dashboard.html";
+
+  } else {
+
+    alert(data.message);
+  }
+}
+
+
+function headers() {
+
+  return {
+    "Content-Type": "application/json",
+    "authorization": localStorage.getItem("token")
+  };
+}
+
+
+async function loadProfile() {
+
+  const response = await fetch("/api/profile", {
+    headers: headers()
+  });
+
+  const user = await response.json();
+
+  if (user.balance !== undefined) {
+
+    document.getElementById("balance").innerText =
+      "₹" + user.balance;
+
+    document.getElementById("referralCode").innerText =
+      user.referralCode;
+  }
+}
+
+
+async function dailyBonus() {
+
+  const response = await fetch("/api/daily-bonus", {
+    method: "POST",
+    headers: headers()
+  });
+
+  const data = await response.json();
+
+  alert(data.message || "You received ₹" + data.reward);
+
+  loadProfile();
+}
+
+
+async function loadTasks() {
+
+  const response = await fetch("/api/tasks", {
+    headers: headers()
+  });
+
+  const tasks = await response.json();
+
+  const container = document.getElementById("tasks");
+
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  tasks.forEach(task => {
+
+    container.innerHTML += `
+
+      <div class="task">
+
+        <h3>${task.title}</h3>
+
+        <p>${task.description}</p>
+
+        <b>Reward: ₹${task.reward}</b>
+
+        <br><br>
+
+        <button onclick="completeTask('${task._id}')">
+          Complete Task
+        </button>
+
+      </div>
+    `;
+  });
+}
+
+
+async function completeTask(id) {
+
+  const response = await fetch("/api/task/" + id, {
+    method: "POST",
+    headers: headers()
+  });
+
+  const data = await response.json();
+
+  alert(data.message || "Task completed!");
+
+  loadProfile();
+}
+
+
+async function withdraw() {
+
+  const amount =
+    document.getElementById("withdrawAmount").value;
+
+  const method =
+    document.getElementById("withdrawMethod").value;
+
+  const account =
+    document.getElementById("withdrawAccount").value;
+
+  const response = await fetch("/api/withdraw", {
+
+    method: "POST",
+
+    headers: headers(),
+
+    body: JSON.stringify({
+      amount,
+      method,
+      account
+    })
+  });
+
+  const data = await response.json();
+
+  alert(data.message);
+
+  loadProfile();
+}
+
+
+if (window.location.pathname.includes("dashboard")) {
+
+  loadProfile();
+
+  loadTasks();
+}
