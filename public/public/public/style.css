@@ -1,0 +1,67 @@
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f4f6f9;
+}
+
+.hero {
+  text-align: center;
+  padding: 40px 15px;
+}
+
+.hero h1 {
+  font-size: 38px;
+}
+
+.card {
+  background: white;
+  max-width: 420px;
+  margin: 20px auto;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px #ddd;
+}
+
+input, select {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  background: #222;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.dashboard {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+}
+
+.balance {
+  background: #222;
+  color: white;
+  text-align: center;
+  padding: 30px;
+  border-radius: 15px;
+}
+
+.task {
+  background: white;
+  padding: 20px;
+  margin: 15px 0;
+  border-radius: 12px;
+}
