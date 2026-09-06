@@ -1,31 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Free Money</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
 <div class="hero">
-
   <h1>💰 FREE MONEY</h1>
-
   <p>Complete Tasks • Earn Rewards • Invite Friends</p>
 
   <div class="card">
 
     <h2>Create Account</h2>
 
-    <input id="name" placeholder="Your Name">
+    <input type="text" id="name" placeholder="Your Name" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <input type="text" id="referral" placeholder="Referral Code (Optional)">
 
-    <input id="email" placeholder="Email">
-
-    <input id="password" type="password" placeholder="Password">
-
-    <input id="referral" placeholder="Referral Code (Optional)">
-
-    <button onclick="register()">
+    <button type="button" id="registerBtn">
       Create Account
     </button>
 
@@ -33,21 +30,21 @@
 
     <h2>Login</h2>
 
-    <input id="loginEmail" placeholder="Email">
+    <input type="email" id="loginEmail" placeholder="Email" required>
 
-    <input id="loginPassword"
-      type="password"
-      placeholder="Password">
+    <input type="password" id="loginPassword"
+      placeholder="Password" required>
 
-    <button onclick="login()">
+    <button type="button" id="loginBtn">
       Login
     </button>
 
-  </div>
+    <p id="message"></p>
 
+  </div>
 </div>
 
-<script src="app.js"></script>
+<script src="/app.js"></script>
 
 </body>
 </html>
