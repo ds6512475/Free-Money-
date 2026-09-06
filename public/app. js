@@ -1,189 +1,238 @@
-const API = "https://free-money-nk8r.onrender.com";
+const API = window.location.origin;
 
 async function register() {
+  try {
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const referral = document.getElementById("referral").value.trim();
 
-  const response = await fetch(API + "/api/register", {
-    method: "POST",
+    if (!name || !email || !password) {
+      alert("Please fill all required fields!");
+      return;
+    }
 
-    headers: {
-      "Content-Type": "application/json"
-    },
+    const response = await fetch(API + "/api/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        referral
+      })
+    });
 
-    body: JSON.stringify({
-      name: document.getElementById("name").value,
-      email: document.getElementById("email").value,
-      password: document.getElementById("password").value,
-      referral: document.getElementById("referral").value
-    })
-  });
+    const data = await response.json();
 
-  const data = await response.json();
+    if (data.success) {
+      alert("Account created successfully! Now login.");
+      document.getElementById("name").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("password").value = "";
+      document.getElementById("referral").value = "";
+    } else {
+      alert(data.message || "Registration failed");
+    }
 
-  alert(data.message);
+  } catch (error) {
+    console.error(error);
+    alert("Server connection error: " + error.message);
+  }
 }
 
 
 async function login() {
-try{
-  const response = await fetch(API + "/api/login", {
-    method: "POST",
+  try {
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
 
-    headers: {
-      "Content-Type": "application/json"
-    },
+    if (!email || !password) {
+      alert("Enter email and password!");
+      return;
+    }
 
-    body: JSON.stringify({
-      email: document.getElementById("loginEmail").value,
-      password: document.getElementById("loginPassword").value
-    })
-  });
+    const response = await fetch(API + "/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email,
+        password
+      })
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  if (data.token) {
+    if (data.success && data.token) {
+      localStorage.setItem("token", data.token);
+      alert("Login successful!");
+      window.location.href = "/dashboard.html";
+    } else {
+      alert(data.message || "Login failed");
+    }
 
-    localStorage.setItem("token", data.token);
-
-    window.location = "dashboard.html";
-
-  } else {
-
-    alert(data.message);
+  } catch (error) {
+    console.error(error);
+    alert("Server connection error: " + error.message);
   }
-} catch(error){console.error('Error:',error);\'alert('login failed');\'
+}
 
 
 function headers() {
-
   return {
     "Content-Type": "application/json",
-    "authorization": localStorage.getItem("token")
+    "Authorization": localStorage.getItem("token") || ""
   };
 }
 
 
 async function loadProfile() {
+  try {
+    const response = await fetch(API + "/api/profile", {
+      headers: headers()
+    });
 
-  const response = await fetch("/api/profile", {
-    headers: headers()
-  });
+    if (!response.ok) {
+      localStorage.removeItem("token");
+      window.location.href = "/";
+      return;
+    }
 
-  const user = await response.json();
+    const user = await response.json();
 
-  if (user.balance !== undefined) {
+    const balance = document.getElementById("balance");
+    const referralCode = document.getElementById("referralCode");
 
-    document.getElementById("balance").innerText =
-      "₹" + user.balance;
+    if (balance) balance.innerText = "₹" + user.balance;
+    if (referralCode) referralCode.innerText = user.referralCode;
 
-    document.getElementById("referralCode").innerText =
-      user.referralCode;
+  } catch (error) {
+    console.error(error);
   }
 }
 
 
 async function dailyBonus() {
+  try {
+    const response = await fetch(API + "/api/daily-bonus", {
+      method: "POST",
+      headers: headers()
+    });
 
-  const response = await fetch("/api/daily-bonus", {
-    method: "POST",
-    headers: headers()
-  });
+    const data = await response.json();
 
-  const data = await response.json();
+    alert(data.message || `You received ₹${data.reward}`);
+    loadProfile();
 
-  alert(data.message || "You received ₹" + data.reward);
-
-  loadProfile();
+  } catch (error) {
+    alert("Error claiming bonus");
+  }
 }
 
 
 async function loadTasks() {
-
-  const response = await fetch("/api/tasks", {
-    headers: headers()
-  });
-
-  const tasks = await response.json();
-
   const container = document.getElementById("tasks");
-
   if (!container) return;
 
-  container.innerHTML = "";
+  try {
+    const response = await fetch(API + "/api/tasks", {
+      headers: headers()
+    });
 
-  tasks.forEach(task => {
+    const tasks = await response.json();
 
-    container.innerHTML += `
+    container.innerHTML = "";
 
-      <div class="task">
+    if (!Array.isArray(tasks) || tasks.length === 0) {
+      container.innerHTML = "<p>No tasks available yet.</p>";
+      return;
+    }
 
-        <h3>${task.title}</h3>
+    tasks.forEach(task => {
+      container.innerHTML += `
+        <div class="task">
+          <h3>${task.title}</h3>
+          <p>${task.description}</p>
+          <b>Reward: ₹${task.reward}</b>
+          <br><br>
+          <button onclick="completeTask('${task._id}')">
+            Complete Task
+          </button>
+        </div>
+      `;
+    });
 
-        <p>${task.description}</p>
-
-        <b>Reward: ₹${task.reward}</b>
-
-        <br><br>
-
-        <button onclick="completeTask('${task._id}')">
-          Complete Task
-        </button>
-
-      </div>
-    `;
-  });
+  } catch (error) {
+    container.innerHTML = "<p>Error loading tasks.</p>";
+  }
 }
 
 
 async function completeTask(id) {
+  try {
+    const response = await fetch(API + "/api/task/" + id, {
+      method: "POST",
+      headers: headers()
+    });
 
-  const response = await fetch("/api/task/" + id, {
-    method: "POST",
-    headers: headers()
-  });
+    const data = await response.json();
 
-  const data = await response.json();
+    alert(data.message || "Task completed!");
+    loadProfile();
+    loadTasks();
 
-  alert(data.message || "Task completed!");
-
-  loadProfile();
+  } catch (error) {
+    alert("Task error");
+  }
 }
 
 
 async function withdraw() {
+  try {
+    const amount = Number(
+      document.getElementById("withdrawAmount").value
+    );
 
-  const amount =
-    document.getElementById("withdrawAmount").value;
+    const method =
+      document.getElementById("withdrawMethod").value;
 
-  const method =
-    document.getElementById("withdrawMethod").value;
+    const account =
+      document.getElementById("withdrawAccount").value.trim();
 
-  const account =
-    document.getElementById("withdrawAccount").value;
+    if (!amount || !account) {
+      alert("Please enter withdrawal details");
+      return;
+    }
 
-  const response = await fetch("/api/withdraw", {
+    const response = await fetch(API + "/api/withdraw", {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({
+        amount,
+        method,
+        account
+      })
+    });
 
-    method: "POST",
+    const data = await response.json();
 
-    headers: headers(),
+    alert(data.message || "Withdrawal request submitted");
 
-    body: JSON.stringify({
-      amount,
-      method,
-      account
-    })
-  });
+    if (data.success) {
+      loadProfile();
+    }
 
-  const data = await response.json();
-
-  alert(data.message);
-
-  loadProfile();
+  } catch (error) {
+    alert("Withdrawal error");
+  }
 }
 
 
-if (window.location.pathname.includes("dashboard")) {
-
+if (window.location.pathname.includes("dashboard.html")) {
   loadProfile();
-
   loadTasks();
 }
