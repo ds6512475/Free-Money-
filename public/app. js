@@ -1,128 +1,83 @@
-console.log("APP JS LOADED");
+const registerBtn = document.getElementById("registerBtn");
+const loginBtn = document.getElementById("loginBtn");
 
-const API = window.location.origin;
-
-function showMessage(text, type = "normal") {
-  const msg = document.getElementById("message");
-  if (msg) {
-    msg.innerText = text;
-    msg.style.color = type === "error" ? "red" : "green";
-  }
+function showMessage(text) {
+  const message = document.getElementById("message");
+  if (message) message.innerText = text;
 }
 
-// REGISTER BUTTON
-const registerBtn = document.getElementById("registerBtn");
-
 if (registerBtn) {
-  registerBtn.addEventListener("click", async function () {
-
+  registerBtn.addEventListener("click", async () => {
     showMessage("Creating account...");
 
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const referral = document.getElementById("referral").value.trim();
+
     try {
-      const name = document.getElementById("name").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-      const referral = document.getElementById("referral").value.trim();
-
-      if (!name || !email || !password) {
-        showMessage("Please fill all required fields", "error");
-        return;
-      }
-
       const response = await fetch("/api/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: name,
-          email: email,
-          password: password,
-          referral: referral
+          name,
+          email,
+          password,
+          referral
         })
       });
 
       const data = await response.json();
 
-      console.log(data);
-
       if (data.success) {
-        showMessage("Account created successfully! Please login.");
+        showMessage("Account created! Now login.");
       } else {
-        showMessage(data.message || "Registration failed", "error");
+        showMessage(data.message || "Registration failed");
       }
 
     } catch (error) {
+      showMessage("Error connecting to server");
       console.error(error);
-      showMessage("Error: " + error.message, "error");
     }
   });
 }
 
 
-// LOGIN BUTTON
-const loginBtn = document.getElementById("loginBtn");
-
 if (loginBtn) {
-  loginBtn.addEventListener("click", async function () {
-
+  loginBtn.addEventListener("click", async () => {
     showMessage("Logging in...");
 
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+
     try {
-      const email =
-        document.getElementById("loginEmail").value.trim();
-
-      const password =
-        document.getElementById("loginPassword").value;
-
-      if (!email || !password) {
-        showMessage("Enter email and password", "error");
-        return;
-      }
-
       const response = await fetch("/api/login", {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json"
         },
-
         body: JSON.stringify({
-          email: email,
-          password: password
+          email,
+          password
         })
       });
 
       const data = await response.json();
 
-      console.log(data);
-
       if (data.success && data.token) {
-
         localStorage.setItem("token", data.token);
+        showMessage("Login successful!");
 
-        showMessage("Login successful! Redirecting...");
-
-        setTimeout(() => {
-          window.location.href = "/dashboard.html";
-        }, 500);
-
+        window.location.href = "/dashboard.html";
       } else {
-
-        showMessage(
-          data.message || "Login failed",
-          "error"
-        );
+        showMessage(data.message || "Login failed");
       }
 
     } catch (error) {
-
+      showMessage("Login error");
       console.error(error);
-
-      showMessage(
-        "Connection Error: " + error.message,
-        "error"
-      );
     }
   });
 }
