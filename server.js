@@ -13,8 +13,7 @@ const Withdrawal = require("./models/Withdrawal");
 const app = express();
 
 app.use(express.json());
-app.use(express.static("public"));
-
+app.use(express.static(path.join(__dirname, "public")));
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
